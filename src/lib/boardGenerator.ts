@@ -8,9 +8,10 @@ export function generateBoard(
   onProgress: BoardGeneratorCallback
 ): number[][] {
   const random = createSeededRandom(seed);
-  const board: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
+  let board: number[][] = [];
   let numColoredSquares = 0;
   const total = N * N;
+  const maxAttempts = total * 10;
 
   // Helper to check if a position conflicts with existing colored squares
   const hasConflict = (row: number, col: number): boolean => {
@@ -27,40 +28,37 @@ export function generateBoard(
     return false;
   };
 
-  // Phase 1: Place one of each color (1 to N)
-  for (let color = 1; color <= N; color++) {
-    let attempts = 0;
-    const maxAttempts = N * N * 10;
-    
-    while (attempts < maxAttempts) {
-      const row = Math.floor(random() * N);
-      const col = Math.floor(random() * N);
+  for (let phase1Attempt = 0; phase1Attempt < maxAttempts; phase1Attempt++) {
+    // Phase 1: Place one of each color (1 to N)
+    numColoredSquares = 0;
+    board = Array.from({ length: N }, () => Array(N).fill(0));
+    for (let color = 1; color <= N; color++) {
+      let colorAttempt = 0;
+      while (colorAttempt < maxAttempts) {
+        const row = Math.floor(random() * N);
+        const col = Math.floor(random() * N);
+        
+        if (board[row][col] === 0 && !hasConflict(row, col)) {
+          board[row][col] = color;
+          numColoredSquares++;
+          console.log(`Key color ${color} placed at row ${row}, col ${col}`);
+          onProgress(numColoredSquares, total);
+          break;
+        }
+        colorAttempt++;
+      }
       
-      if (board[row][col] === 0 && !hasConflict(row, col)) {
-        board[row][col] = color;
-        numColoredSquares++;
-        console.log(`Color ${color} placed at row ${row}, col ${col}`);
-        onProgress(numColoredSquares, total);
+      // Fallback: if we couldn't find a valid spot, restart board generation
+      if (colorAttempt >= maxAttempts) {
         break;
       }
-      attempts++;
     }
-    
-    // Fallback: if we couldn't find a valid spot, just place it somewhere empty
-    if (attempts >= maxAttempts) {
-      for (let r = 0; r < N; r++) {
-        for (let c = 0; c < N; c++) {
-          if (board[r][c] === 0) {
-            board[r][c] = color;
-            numColoredSquares++;
-            console.log(`Color ${color} placed at row ${r}, col ${c} (fallback)`);
-            onProgress(numColoredSquares, total);
-            break;
-          }
-        }
-        if (board.flat().filter(x => x === color).length > 0) break;
-      }
+    if (numColoredSquares === N) {
+      break;
     }
+  }
+  if (numColoredSquares < N) {
+    throw new Error('Failed to place one of each color');
   }
 
   // Phase 2: Fill remaining squares
@@ -80,7 +78,7 @@ export function generateBoard(
   }
 
   let attempts = 0;
-  const maxTotalAttempts = N * N * N * 10;
+  const maxTotalAttempts = maxAttempts * N;
 
   while (numColoredSquares < total && attempts < maxTotalAttempts) {
     // Pick a random uncolored square
