@@ -52,13 +52,13 @@ export default function Index() {
   const handleShare = useCallback(async () => {
     try {
       await navigator.share({
-        title: 'Star Puzzle',
-        text: `I won a ${N}×${N} Star Puzzle!`,
+        title: 'Starry Grid',
+        text: `I won a ${N}×${N} Starry Grid!`,
         url: window.location.href,
       });
     } catch {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`I won a ${N}×${N} Star Puzzle! ${window.location.href}`);
+      navigator.clipboard.writeText(`I won a ${N}×${N} Starry Grid! ${window.location.href}`);
     }
   }, [N]);
 
@@ -74,10 +74,10 @@ export default function Index() {
         <div className="flex flex-col items-center gap-8 w-full max-w-md animate-fade-in">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">
-              Star Puzzle
+              Starry Grid
             </h1>
             <p className="text-muted-foreground">
-              Place stars so each color has exactly one
+              Place stars so each color, row, and column has exactly one and none are diagonally adjacent
             </p>
           </div>
 
