@@ -7,7 +7,7 @@ export const GAME_COLORS: Record<number, { bg: string; dark: string; name: strin
   5: { bg: 'hsl(38, 92%, 50%)', dark: 'hsl(38, 92%, 32%)', name: 'Topaz' },
   6: { bg: 'hsl(330, 81%, 55%)', dark: 'hsl(330, 81%, 35%)', name: 'Rose' },
   7: { bg: 'hsl(180, 70%, 45%)', dark: 'hsl(180, 70%, 28%)', name: 'Teal' },
-  8: { bg: 'hsl(45, 93%, 47%)', dark: 'hsl(45, 93%, 30%)', name: 'Gold' },
+  8: { bg: 'hsl(45, 93%, 67%)', dark: 'hsl(45, 93%, 47%)', name: 'Gold' },
   9: { bg: 'hsl(280, 100%, 65%)', dark: 'hsl(280, 100%, 42%)', name: 'Orchid' },
 };
 
