@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { getColorStyle } from '@/lib/gameColors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Star, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Star, X, Undo2 } from 'lucide-react';
 import { useDragToX } from '@/hooks/useDragToX';
 
 type SquareState = 'empty' | 'x' | 'star';
@@ -23,9 +24,24 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
   const [hasWon, setHasWon] = useState(false);
   const [autoX, setAutoX] = useState(true);
   const [autoXMap, setAutoXMap] = useState<AutoXMap>({});
+  const undoStack = useRef<{ states: SquareState[][]; autoXMap: AutoXMap }[]>([]);
+
+  const saveSnapshot = () => {
+    undoStack.current.push({
+      states: states.map(r => [...r]),
+      autoXMap: { ...autoXMap },
+    });
+  };
+
+  const handleUndo = () => {
+    const snapshot = undoStack.current.pop();
+    if (!snapshot) return;
+    setStates(snapshot.states);
+    setAutoXMap(snapshot.autoXMap);
+  };
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, shouldSuppressClick } =
-    useDragToX({ N, states, setStates: setStates, hasWon });
+    useDragToX({ N, states, setStates, hasWon, onDragStart: saveSnapshot });
 
   const checkWin = useCallback((newStates: SquareState[][]) => {
     const stars: [number, number][] = [];
@@ -89,6 +105,8 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
     if (hasWon) return;
     if (shouldSuppressClick()) return;
 
+    saveSnapshot();
+
     setStates(prev => {
       const newStates = prev.map(r => [...r]);
       const current = newStates[row][col];
@@ -139,6 +157,8 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
     e.preventDefault();
     if (hasWon) return;
 
+    saveSnapshot();
+
     setStates(prev => {
       const newStates = prev.map(r => [...r]);
       const current = newStates[row][col];
@@ -172,6 +192,16 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
   return (
     <div className="flex flex-col items-end gap-2 w-fit mx-auto">
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleUndo}
+          disabled={hasWon || undoStack.current.length === 0}
+          className="h-8 w-8"
+          aria-label="Undo"
+        >
+          <Undo2 className="h-4 w-4" />
+        </Button>
         <Checkbox
           id="auto-x"
           checked={autoX}
