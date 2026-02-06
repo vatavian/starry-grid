@@ -73,6 +73,17 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
     });
   };
 
+  const handleRightClick = (e: React.MouseEvent, row: number, col: number) => {
+    e.preventDefault();
+    if (hasWon) return;
+
+    setStates(prev => {
+      const newStates = prev.map(r => [...r]);
+      newStates[row][col] = 'empty';
+      return newStates;
+    });
+  };
+
   const cellSize = `calc((min(100vw, 100vh) - 4rem) / ${N})`;
 
   return (
@@ -98,6 +109,7 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
             <button
               key={`${r}-${c}`}
               onClick={() => handleClick(r, c)}
+              onContextMenu={(e) => handleRightClick(e, r, c)}
               className="relative flex items-center justify-center transition-transform active:scale-95"
               style={{
                 backgroundColor: color.bg,
