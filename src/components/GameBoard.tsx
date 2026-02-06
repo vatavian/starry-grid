@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { getColorStyle } from '@/lib/gameColors';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Star, X } from 'lucide-react';
 
 type SquareState = 'empty' | 'x' | 'star';
@@ -10,11 +12,16 @@ interface GameBoardProps {
   onWin: () => void;
 }
 
+// Key for a star position -> list of cells it auto-X'd
+type AutoXMap = Record<string, [number, number][]>;
+
 export function GameBoard({ board, N, onWin }: GameBoardProps) {
   const [states, setStates] = useState<SquareState[][]>(() =>
     Array.from({ length: N }, () => Array(N).fill('empty'))
   );
   const [hasWon, setHasWon] = useState(false);
+  const [autoX, setAutoX] = useState(true);
+  const [autoXMap, setAutoXMap] = useState<AutoXMap>({});
 
   const checkWin = useCallback((newStates: SquareState[][]) => {
     const stars: [number, number][] = [];
@@ -32,12 +39,10 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
     if (stars.length !== N) return false;
     if (colorsUsed.size !== N) return false;
 
-    // Check no two stars in same row or column
     const rows = new Set(stars.map(([r]) => r));
     const cols = new Set(stars.map(([, c]) => c));
     if (rows.size !== N || cols.size !== N) return false;
 
-    // Check no diagonal adjacency
     for (let i = 0; i < stars.length; i++) {
       for (let j = i + 1; j < stars.length; j++) {
         const [r1, c1] = stars[i];
@@ -49,19 +54,71 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
     return true;
   }, [N, board]);
 
+  const getAutoXTargets = useCallback((row: number, col: number, currentStates: SquareState[][]): [number, number][] => {
+    const targets: [number, number][] = [];
+    for (let i = 0; i < N; i++) {
+      // Same row
+      if (i !== col && currentStates[row][i] === 'empty') {
+        targets.push([row, i]);
+      }
+      // Same column
+      if (i !== row && currentStates[i][col] === 'empty') {
+        targets.push([i, col]);
+      }
+    }
+    // Diagonal adjacents
+    for (const dr of [-1, 1]) {
+      for (const dc of [-1, 1]) {
+        const nr = row + dr;
+        const nc = col + dc;
+        if (nr >= 0 && nr < N && nc >= 0 && nc < N && currentStates[nr][nc] === 'empty') {
+          targets.push([nr, nc]);
+        }
+      }
+    }
+    return targets;
+  }, [N]);
+
+  const starKey = (r: number, c: number) => `${r},${c}`;
+
   const handleClick = (row: number, col: number) => {
     if (hasWon) return;
 
     setStates(prev => {
       const newStates = prev.map(r => [...r]);
       const current = newStates[row][col];
-      
+
       if (current === 'empty') {
         newStates[row][col] = 'x';
       } else if (current === 'x') {
         newStates[row][col] = 'star';
+
+        if (autoX) {
+          const targets = getAutoXTargets(row, col, newStates);
+          for (const [tr, tc] of targets) {
+            newStates[tr][tc] = 'x';
+          }
+          setAutoXMap(prev => ({ ...prev, [starKey(row, col)]: targets }));
+        }
       } else {
+        // Removing a star — revert its auto-X'd cells
         newStates[row][col] = 'empty';
+        const key = starKey(row, col);
+        setAutoXMap(prev => {
+          const targets = prev[key];
+          if (targets) {
+            for (const [tr, tc] of targets) {
+              // Only revert if still an X (user might have changed it)
+              if (newStates[tr][tc] === 'x') {
+                newStates[tr][tc] = 'empty';
+              }
+            }
+            const next = { ...prev };
+            delete next[key];
+            return next;
+          }
+          return prev;
+        });
       }
 
       if (newStates[row][col] === 'star' && checkWin(newStates)) {
@@ -79,7 +136,28 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
 
     setStates(prev => {
       const newStates = prev.map(r => [...r]);
+      const current = newStates[row][col];
       newStates[row][col] = 'empty';
+
+      // If clearing a star, revert its auto-X'd cells
+      if (current === 'star') {
+        const key = starKey(row, col);
+        setAutoXMap(prevMap => {
+          const targets = prevMap[key];
+          if (targets) {
+            for (const [tr, tc] of targets) {
+              if (newStates[tr][tc] === 'x') {
+                newStates[tr][tc] = 'empty';
+              }
+            }
+            const next = { ...prevMap };
+            delete next[key];
+            return next;
+          }
+          return prevMap;
+        });
+      }
+
       return newStates;
     });
   };
@@ -87,12 +165,23 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
   const cellSize = `calc((min(100vw, 100vh) - 4rem) / ${N})`;
 
   return (
-    <div 
-      className="grid gap-0 mx-auto game-board-shadow"
-      style={{ 
-        gridTemplateColumns: `repeat(${N}, ${cellSize})`,
-        gridTemplateRows: `repeat(${N}, ${cellSize})`,
-      }}
+    <div className="flex flex-col items-end gap-2 w-fit mx-auto">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="auto-x"
+          checked={autoX}
+          onCheckedChange={(checked) => setAutoX(checked === true)}
+        />
+        <Label htmlFor="auto-x" className="text-muted-foreground text-sm cursor-pointer select-none">
+          Auto-X
+        </Label>
+      </div>
+      <div 
+        className="grid gap-0 game-board-shadow"
+        style={{ 
+          gridTemplateColumns: `repeat(${N}, ${cellSize})`,
+          gridTemplateRows: `repeat(${N}, ${cellSize})`,
+        }}
     >
       {board.map((row, r) =>
         row.map((colorNum, c) => {
@@ -120,7 +209,7 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
               }}
             >
               {state === 'x' && (
-                <X className="w-1/2 h-1/2 text-gray-700 stroke-[3]" />
+                <X className="w-1/2 h-1/2 text-muted-foreground stroke-[3]" />
               )}
               {state === 'star' && (
                 <Star className="w-1/2 h-1/2 text-white fill-white drop-shadow-glow" />
@@ -129,6 +218,7 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
           );
         })
       )}
+      </div>
     </div>
   );
 }
