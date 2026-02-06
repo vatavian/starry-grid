@@ -45,7 +45,7 @@ export function useDragToX({ N, states, setStates, hasWon }: UseDragToXOptions) 
     if (states[r][c] !== 'empty') return;
 
     isDragging.current = true;
-    didDrag.current = false;
+    didDrag.current = true;
     draggedCells.current = new Set();
 
     // Capture pointer for move/up events
