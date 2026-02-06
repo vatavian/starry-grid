@@ -3,6 +3,7 @@ import { getColorStyle } from '@/lib/gameColors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Star, X } from 'lucide-react';
+import { useDragToX } from '@/hooks/useDragToX';
 
 type SquareState = 'empty' | 'x' | 'star';
 
@@ -22,6 +23,9 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
   const [hasWon, setHasWon] = useState(false);
   const [autoX, setAutoX] = useState(true);
   const [autoXMap, setAutoXMap] = useState<AutoXMap>({});
+
+  const { handlePointerDown, handlePointerMove, handlePointerUp, shouldSuppressClick } =
+    useDragToX({ N, states, setStates: setStates, hasWon });
 
   const checkWin = useCallback((newStates: SquareState[][]) => {
     const stars: [number, number][] = [];
@@ -83,6 +87,7 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
 
   const handleClick = (row: number, col: number) => {
     if (hasWon) return;
+    if (shouldSuppressClick()) return;
 
     setStates(prev => {
       const newStates = prev.map(r => [...r]);
@@ -181,7 +186,10 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
         style={{ 
           gridTemplateColumns: `repeat(${N}, ${cellSize})`,
           gridTemplateRows: `repeat(${N}, ${cellSize})`,
+          touchAction: 'none',
         }}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
     >
       {board.map((row, r) =>
         row.map((colorNum, c) => {
@@ -197,8 +205,12 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
           return (
             <button
               key={`${r}-${c}`}
+              data-cell
+              data-row={r}
+              data-col={c}
               onClick={() => handleClick(r, c)}
               onContextMenu={(e) => handleRightClick(e, r, c)}
+              onPointerDown={(e) => handlePointerDown(r, c, e)}
               className="relative flex items-center justify-center transition-transform active:scale-95"
               style={{
                 backgroundColor: color.bg,
