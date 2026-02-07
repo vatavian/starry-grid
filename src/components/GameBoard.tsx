@@ -38,6 +38,17 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
     resetBoard();
   }, [clearSignal, resetBoard]);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   const saveSnapshot = () => {
     undoStack.current.push({
       states: states.map(r => [...r]),
