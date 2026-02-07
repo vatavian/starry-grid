@@ -13,12 +13,23 @@ interface GameBoardProps {
   N: number;
   onWin: () => void;
   clearSignal: number;
+  mode: 'playing' | 'customize';
+  selectedColor?: number;
+  onBoardChange?: (board: number[][]) => void;
 }
 
 // Key for a star position -> list of cells it auto-X'd
 type AutoXMap = Record<string, [number, number][]>;
 
-export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
+export function GameBoard({
+  board,
+  N,
+  onWin,
+  clearSignal,
+  mode,
+  selectedColor = 1,
+  onBoardChange,
+}: GameBoardProps) {
   const [states, setStates] = useState<SquareState[][]>(() =>
     Array.from({ length: N }, () => Array(N).fill('empty'))
   );
@@ -37,6 +48,12 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
   useEffect(() => {
     resetBoard();
   }, [clearSignal, resetBoard]);
+
+  useEffect(() => {
+    if (mode === 'customize') {
+      resetBoard();
+    }
+  }, [mode, resetBoard]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -125,6 +142,14 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
   const starKey = (r: number, c: number) => `${r},${c}`;
 
   const handleClick = (row: number, col: number) => {
+    if (mode === 'customize') {
+      if (!onBoardChange) return;
+      const nextBoard = board.map((boardRow) => [...boardRow]);
+      nextBoard[row][col] = selectedColor;
+      onBoardChange(nextBoard);
+      return;
+    }
+
     if (hasWon) return;
     if (shouldSuppressClick()) return;
 
@@ -178,6 +203,21 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
 
   const handleRightClick = (e: React.MouseEvent, row: number, col: number) => {
     e.preventDefault();
+    if (mode === 'customize') {
+      if (!onBoardChange) return;
+      const current = board[row][col];
+      let nextColor = Math.floor(Math.random() * N) + 1;
+      if (N > 1) {
+        while (nextColor === current) {
+          nextColor = Math.floor(Math.random() * N) + 1;
+        }
+      }
+      const nextBoard = board.map((boardRow) => [...boardRow]);
+      nextBoard[row][col] = nextColor;
+      onBoardChange(nextBoard);
+      return;
+    }
+
     if (hasWon) return;
 
     saveSnapshot();
@@ -264,26 +304,28 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
 
   return (
     <div className="flex flex-col items-end gap-2 w-fit mx-auto">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleUndo}
-          disabled={hasWon || undoStack.current.length === 0}
-          className="h-8 w-8"
-          aria-label="Undo"
-        >
-          <Undo2 className="h-4 w-4" />
-        </Button>
-        <Checkbox
-          id="auto-x"
-          checked={autoX}
-          onCheckedChange={(checked) => setAutoX(checked === true)}
-        />
-        <Label htmlFor="auto-x" className="text-muted-foreground text-sm cursor-pointer select-none">
-          Auto-X
-        </Label>
-      </div>
+      {mode === 'playing' && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleUndo}
+            disabled={hasWon || undoStack.current.length === 0}
+            className="h-8 w-8"
+            aria-label="Undo"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Checkbox
+            id="auto-x"
+            checked={autoX}
+            onCheckedChange={(checked) => setAutoX(checked === true)}
+          />
+          <Label htmlFor="auto-x" className="text-muted-foreground text-sm cursor-pointer select-none">
+            Auto-X
+          </Label>
+        </div>
+      )}
       <div 
         className="grid gap-0 game-board-shadow"
         style={{ 
@@ -291,8 +333,8 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
           gridTemplateRows: `repeat(${N}, ${cellSize})`,
           touchAction: 'none',
         }}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
+        onPointerMove={mode === 'playing' ? handlePointerMove : undefined}
+        onPointerUp={mode === 'playing' ? handlePointerUp : undefined}
     >
       {board.map((row, r) =>
         row.map((colorNum, c) => {
@@ -314,7 +356,7 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
               data-col={c}
               onClick={() => handleClick(r, c)}
               onContextMenu={(e) => handleRightClick(e, r, c)}
-              onPointerDown={(e) => handlePointerDown(r, c, e)}
+              onPointerDown={mode === 'playing' ? (e) => handlePointerDown(r, c, e) : undefined}
               className="relative flex items-center justify-center transition-transform active:scale-95"
               style={{
                 backgroundColor: color.bg,
@@ -324,10 +366,10 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
                 borderBottom: bottomBorder ? '2px solid black' : `2px solid ${color.dark}`,
               }}
             >
-              {state === 'x' && (
+              {mode === 'playing' && state === 'x' && (
                 <X className="w-1/2 h-1/2 text-muted-foreground stroke-[3]" />
               )}
-              {state === 'star' && (
+              {mode === 'playing' && state === 'star' && (
                 <Star
                   className={
                     isConflict
@@ -341,15 +383,17 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
         })
       )}
       </div>
-      <div className="min-h-[2.5rem] text-sm text-red-500" aria-live="polite">
-        {conflictMessages.length > 0 && (
-          <ul className="space-y-1 text-right">
-            {conflictMessages.map(message => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {mode === 'playing' && (
+        <div className="min-h-[2.5rem] text-sm text-red-500" aria-live="polite">
+          {conflictMessages.length > 0 && (
+            <ul className="space-y-1 text-right">
+              {conflictMessages.map(message => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
