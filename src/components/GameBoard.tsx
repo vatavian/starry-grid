@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { getColorStyle } from '@/lib/gameColors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -12,12 +12,13 @@ interface GameBoardProps {
   board: number[][];
   N: number;
   onWin: () => void;
+  clearSignal: number;
 }
 
 // Key for a star position -> list of cells it auto-X'd
 type AutoXMap = Record<string, [number, number][]>;
 
-export function GameBoard({ board, N, onWin }: GameBoardProps) {
+export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
   const [states, setStates] = useState<SquareState[][]>(() =>
     Array.from({ length: N }, () => Array(N).fill('empty'))
   );
@@ -25,6 +26,17 @@ export function GameBoard({ board, N, onWin }: GameBoardProps) {
   const [autoX, setAutoX] = useState(true);
   const [autoXMap, setAutoXMap] = useState<AutoXMap>({});
   const undoStack = useRef<{ states: SquareState[][]; autoXMap: AutoXMap }[]>([]);
+
+  const resetBoard = useCallback(() => {
+    setStates(Array.from({ length: N }, () => Array(N).fill('empty')));
+    setHasWon(false);
+    setAutoXMap({});
+    undoStack.current = [];
+  }, [N]);
+
+  useEffect(() => {
+    resetBoard();
+  }, [clearSignal, resetBoard]);
 
   const saveSnapshot = () => {
     undoStack.current.push({
