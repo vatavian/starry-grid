@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { getColorStyle } from '@/lib/gameColors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -200,6 +200,56 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
   };
 
   const cellSize = `calc((min(100vw, 100vh) - 4rem) / ${N})`;
+  const { conflictKeys, conflictMessages } = useMemo(() => {
+    const stars: { r: number; c: number; color: number }[] = [];
+    const rowMap = new Map<number, { r: number; c: number }[]>();
+    const colMap = new Map<number, { r: number; c: number }[]>();
+    const colorMap = new Map<number, { r: number; c: number }[]>();
+
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        if (states[r][c] === 'star') {
+          const color = board[r][c];
+          stars.push({ r, c, color });
+          rowMap.set(r, [...(rowMap.get(r) ?? []), { r, c }]);
+          colMap.set(c, [...(colMap.get(c) ?? []), { r, c }]);
+          colorMap.set(color, [...(colorMap.get(color) ?? []), { r, c }]);
+        }
+      }
+    }
+
+    const conflicts = new Set<string>();
+    const messages = new Set<string>();
+
+    const addGroupedConflicts = (label: string, map: Map<number, { r: number; c: number }[]>, formatKey: (key: number) => string) => {
+      for (const [key, positions] of map.entries()) {
+        if (positions.length > 1) {
+          positions.forEach(({ r, c }) => conflicts.add(starKey(r, c)));
+          messages.add(`${label} ${formatKey(key)} has multiple stars.`);
+        }
+      }
+    };
+
+    addGroupedConflicts('Row', rowMap, key => `${key + 1}`);
+    addGroupedConflicts('Column', colMap, key => `${key + 1}`);
+    addGroupedConflicts('Color', colorMap, key => `${key + 1}`);
+
+    for (let i = 0; i < stars.length; i++) {
+      for (let j = i + 1; j < stars.length; j++) {
+        const a = stars[i];
+        const b = stars[j];
+        if (Math.abs(a.r - b.r) === 1 && Math.abs(a.c - b.c) === 1) {
+          conflicts.add(starKey(a.r, a.c));
+          conflicts.add(starKey(b.r, b.c));
+          messages.add(
+            `Diagonal neighbors at (${a.r + 1}, ${a.c + 1}) and (${b.r + 1}, ${b.c + 1}).`
+          );
+        }
+      }
+    }
+
+    return { conflictKeys: conflicts, conflictMessages: Array.from(messages) };
+  }, [N, board, states]);
 
   return (
     <div className="flex flex-col items-end gap-2 w-fit mx-auto">
@@ -237,6 +287,7 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
         row.map((colorNum, c) => {
           const color = getColorStyle(colorNum);
           const state = states[r][c];
+          const isConflict = state === 'star' && conflictKeys.has(starKey(r, c));
           
           // Determine border styles
           const topBorder = r === 0 || board[r - 1][c] !== colorNum;
@@ -266,12 +317,27 @@ export function GameBoard({ board, N, onWin, clearSignal }: GameBoardProps) {
                 <X className="w-1/2 h-1/2 text-muted-foreground stroke-[3]" />
               )}
               {state === 'star' && (
-                <Star className="w-1/2 h-1/2 text-white fill-white drop-shadow-glow" />
+                <Star
+                  className={
+                    isConflict
+                      ? "w-1/2 h-1/2 text-red-500 fill-red-500 drop-shadow-glow"
+                      : "w-1/2 h-1/2 text-white fill-white drop-shadow-glow"
+                  }
+                />
               )}
             </button>
           );
         })
       )}
+      </div>
+      <div className="min-h-[2.5rem] text-sm text-red-500" aria-live="polite">
+        {conflictMessages.length > 0 && (
+          <ul className="space-y-1 text-right">
+            {conflictMessages.map(message => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
