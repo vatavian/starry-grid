@@ -7,9 +7,10 @@ interface UseDragToXOptions {
   states: SquareState[][];
   setStates: React.Dispatch<React.SetStateAction<SquareState[][]>>;
   hasWon: boolean;
+  onDragStart?: () => void;
 }
 
-export function useDragToX({ N, states, setStates, hasWon }: UseDragToXOptions) {
+export function useDragToX({ N, states, setStates, hasWon, onDragStart }: UseDragToXOptions) {
   const isDragging = useRef(false);
   const didDrag = useRef(false);
   const draggedCells = useRef<Set<string>>(new Set());
@@ -47,6 +48,7 @@ export function useDragToX({ N, states, setStates, hasWon }: UseDragToXOptions) 
     isDragging.current = true;
     didDrag.current = true;
     draggedCells.current = new Set();
+    onDragStart?.();
 
     // Capture pointer for move/up events
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
