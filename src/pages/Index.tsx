@@ -25,6 +25,7 @@ export default function Index() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [board, setBoard] = useState<number[][] | null>(null);
   const [N, setN] = useState(8);
+  const [clearSignal, setClearSignal] = useState(0);
 
   const startGame = useCallback(() => {
     const gridSize = difficultyToN[difficulty];
@@ -67,6 +68,11 @@ export default function Index() {
     setGameState('menu');
     setBoard(null);
     setSeed('');
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setClearSignal((value) => value + 1);
+    setGameState('playing');
   }, []);
 
   return (
@@ -119,14 +125,19 @@ export default function Index() {
 
       {(gameState === 'playing' || gameState === 'won') && board && (
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <GameBoard board={board} N={N} onWin={handleWin} />
-          <Button
-            variant="ghost"
-            onClick={handleNewGame}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            ← Back to Menu
-          </Button>
+          <GameBoard board={board} N={N} onWin={handleWin} clearSignal={clearSignal} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={handleNewGame}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ← Back to Menu
+            </Button>
+            <Button variant="outline" onClick={handleClear}>
+              Clear
+            </Button>
+          </div>
         </div>
       )}
 
