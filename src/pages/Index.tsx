@@ -20,7 +20,8 @@ const difficultyToN: Record<Difficulty, number> = {
 export default function Index() {
   const [gameState, setGameState] = useState<GameState>('menu');
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
-  const [seed, setSeed] = useState('');
+  const urlParams = new URLSearchParams(window.location.search);
+  const [seed, setSeed] = useState(urlParams.get('seed') || Date.now().toString());
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [board, setBoard] = useState<number[][] | null>(null);
   const [N, setN] = useState(8);
