@@ -116,6 +116,12 @@ export function GameBoard({
 
   const getAutoXTargets = useCallback((row: number, col: number, currentStates: SquareState[][]): [number, number][] => {
     const targets: [number, number][] = [];
+    const current = board[row][col];
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < N; c++)
+        if (board[r][c] === current && (r !== row || c !== col) && currentStates[r][c] === 'empty')
+          targets.push([r, c]); // Same color
+
     for (let i = 0; i < N; i++) {
       // Same row
       if (i !== col && currentStates[row][i] === 'empty') {
