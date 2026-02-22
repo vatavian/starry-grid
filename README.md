@@ -1,53 +1,36 @@
-# Welcome to your Lovable project
+**Play on Lovable:** https://starry-grid.lovable.app/
 
-## Project info
+**Lovable Project:** https://lovable.dev/projects/1b6d6c33-ab39-49d7-b408-6277dcbeaf97
 
-**URL**: https://starry-grid.lovable.app/
+##Get started in development##
 
-**Lovable Project**: https://lovable.dev/projects/1b6d6c33-ab39-49d7-b408-6277dcbeaf97
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+If you are not already comfortable installing Node.js and npm, try using the Lovable project above.
+If you have Node.js installed, follow the instructions below: 
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone this repository:
+git clone https://github.com/vatavian/starry-grid.git
+cd starry-grid
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+# Install dependencies:
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server with auto-reloading and an instant preview:
 npm run dev
+
+# Open the game in a web browser: http://localhost:8080/
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
+## Technologies used in this project
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+
+## Technologies used while creating this project
+
+- [Lovable.dev](https://lovable.dev/)
+- [Google Antigravity](https://antigravity.google/)
+- [OpenAI Codex](https://openai.com/codex/)
