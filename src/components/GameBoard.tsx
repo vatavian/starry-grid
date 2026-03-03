@@ -256,7 +256,8 @@ export function GameBoard({
     });
   };
 
-  const cellSize = `calc((min(100vw, 100vh) - 4rem) / ${N})`;
+  const reservedVerticalSpace = mode === 'customize' ? '20rem' : '16rem';
+  const cellSize = `calc(min(92vw, calc(100dvh - ${reservedVerticalSpace})) / ${N})`;
   const { conflictKeys, conflictMessages } = useMemo(() => {
     const stars: { r: number; c: number; color: number }[] = [];
     const rowMap = new Map<number, { r: number; c: number }[]>();
@@ -309,7 +310,7 @@ export function GameBoard({
   }, [N, board, states]);
 
   return (
-    <div className="flex flex-col items-end gap-2 w-fit mx-auto">
+    <div className="mx-auto flex w-fit max-w-full flex-col items-end gap-2">
       {mode === 'playing' && (
         <div className="flex items-center gap-2">
           <Button
