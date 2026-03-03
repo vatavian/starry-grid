@@ -173,7 +173,7 @@ export default function Index() {
   }, [board]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="h-dvh overflow-hidden bg-background flex items-center justify-center p-4">
       {gameState === 'menu' && (
         <div className="flex flex-col items-center gap-8 w-full max-w-md animate-fade-in">
           <div className="text-center">
@@ -247,7 +247,7 @@ export default function Index() {
       )}
 
       {(gameState === 'playing' || gameState === 'won' || gameState === 'customize') && board && (
-        <div className="flex flex-col items-center gap-4 animate-fade-in">
+        <div className="flex max-h-full flex-col items-center gap-4 animate-fade-in">
           {gameState === 'customize' && (
             <div className="flex flex-col items-center gap-3">
               <div className="flex flex-wrap justify-center gap-2">
@@ -283,7 +283,7 @@ export default function Index() {
             selectedColor={selectedColor}
             onBoardChange={(nextBoard) => setBoard(nextBoard)}
           />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Button
               variant="ghost"
               onClick={handleNewGame}
