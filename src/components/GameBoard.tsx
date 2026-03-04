@@ -428,13 +428,15 @@ export function GameBoard({
           <div className="mx-4 max-w-md rounded-lg border border-border bg-card p-6 shadow-lg text-card-foreground space-y-3">
             <h2 className="text-xl font-bold">How to Play</h2>
             <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-              <li>Place exactly <strong className="text-foreground">one star</strong> in each row, each column, and each color region.</li>
+              <li>Place exactly <strong className="text-foreground">one star</strong> in each row, each column, and each color.</li>
               <li>Stars may <strong className="text-foreground">not touch each other</strong>, even diagonally.</li>
               <li><strong className="text-foreground">Click / tap</strong> a cell to cycle: empty → X → ★ → empty.</li>
-              <li><strong className="text-foreground">Right-click</strong> (or long-press) a cell to reset it to empty.</li>
+              <li>On desktop, <strong className="text-foreground">right-click</strong> a cell to reset it to empty.</li>
+              <li>Leave X in a cell if a star cannot go there or leave it empty if you're not sure yet.</li>
               <li><strong className="text-foreground">Drag / swipe</strong> starting from an empty cell to mark multiple cells with X.</li>
-              <li>Use <strong className="text-foreground">Auto-X</strong> to automatically X-out impossible cells when you place a star.</li>
-              <li>Use <strong className="text-foreground">Undo</strong> (or Ctrl/⌘+Z) to revert your last move.</li>
+              <li>Placing a star with <strong className="text-foreground">Auto-X</strong> on also places X in cells where another star cannot go.</li>
+              <li>Use <strong className="text-foreground">Undo</strong> <Undo2 className="inline-block h-4 w-4 align-text-bottom" /> to revert your last move. (Windows Ctrl+Z, Mac ⌘+Z)</li>
+              <li>Remove all X and ★ with the <strong className="text-foreground">Clear</strong> button.</li>
             </ul>
             <p className="text-xs text-muted-foreground text-center pt-2">Tap anywhere to close</p>
           </div>

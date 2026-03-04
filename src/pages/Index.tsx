@@ -180,9 +180,6 @@ export default function Index() {
             <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">
               Starry Grid
             </h1>
-            <p className="text-muted-foreground">
-              Place stars so each color, row, and column has exactly one and none are diagonally adjacent
-            </p>
           </div>
 
           <DifficultySelector
