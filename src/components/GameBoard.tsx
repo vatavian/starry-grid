@@ -284,7 +284,7 @@ export function GameBoard({
       for (const [key, positions] of map.entries()) {
         if (positions.length > 1) {
           positions.forEach(({ r, c }) => conflicts.add(starKey(r, c)));
-          messages.add(`${label} ${formatKey(key)} has multiple stars.`);
+          messages.add(`${label} has more than one star.`);
         }
       }
     };
@@ -301,7 +301,7 @@ export function GameBoard({
           conflicts.add(starKey(a.r, a.c));
           conflicts.add(starKey(b.r, b.c));
           messages.add(
-            `Diagonal neighbors at (${a.r + 1}, ${a.c + 1}) and (${b.r + 1}, ${b.c + 1}).`
+            `Diagonal neighbors`
           );
         }
       }
