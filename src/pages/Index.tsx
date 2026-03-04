@@ -177,7 +177,7 @@ export default function Index() {
       {gameState === 'menu' && (
         <div className="flex flex-col items-center gap-8 w-full max-w-md animate-fade-in">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2 pb-2">
               Starry Grid
             </h1>
           </div>
