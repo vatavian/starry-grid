@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Star, X, Undo2 } from 'lucide-react';
+import { Star, X, Undo2, Info } from 'lucide-react';
 import { useDragToX } from '@/hooks/useDragToX';
 
 type SquareState = 'empty' | 'x' | 'star';
@@ -324,30 +324,36 @@ export function GameBoard({
                 className="text-xl leading-none hover:scale-110 transition-transform"
                 aria-label="Instructions"
               >
-                ℹ️
+                <Info className="h-6 w-6" />
               </button>
             </TooltipTrigger>
             <TooltipContent>Instructions</TooltipContent>
           </Tooltip>
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleUndo}
-              disabled={hasWon || undoStack.current.length === 0}
-              className="h-8 w-8"
-              aria-label="Undo"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Checkbox
-              id="auto-x"
-              checked={autoX}
-              onCheckedChange={(checked) => setAutoX(checked === true)}
-            />
-            <Label htmlFor="auto-x" className="text-muted-foreground text-sm cursor-pointer select-none">
-              Auto-X
-            </Label>
+          <div className="ml-auto flex items-center gap-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={hasWon || undoStack.current.length === 0}
+                  className="text-xl leading-none hover:scale-110 transition-transform"
+                  aria-label="Undo"
+                >
+                  <Undo2 className="h-6 w-6" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Undo</TooltipContent>
+            </Tooltip>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="auto-x"
+                checked={autoX}
+                onCheckedChange={(checked) => setAutoX(checked === true)}
+              />
+              <Label htmlFor="auto-x" className="text-muted-foreground text-sm cursor-pointer select-none">
+                Auto-X
+              </Label>
+            </div>
           </div>
         </div>
       )}
