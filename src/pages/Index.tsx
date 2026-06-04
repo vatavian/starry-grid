@@ -281,6 +281,17 @@ export default function Index() {
             mode={gameState === 'customize' ? 'customize' : 'playing'}
             selectedColor={selectedColor}
             onBoardChange={(nextBoard) => setBoard(nextBoard)}
+            testSignal={testSignal}
+            onTestResult={(result) => {
+              if (result.solved) {
+                toast({ title: 'Solution found', description: 'A valid star placement was found.' });
+              } else {
+                toast({
+                  title: 'No solution found',
+                  description: `All colors used: ${result.allColorsUsed ? 'yes' : 'no'}. Non-contiguous color regions: ${result.nonContiguous ? 'yes' : 'no'}.`,
+                });
+              }
+            }}
           />
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button
