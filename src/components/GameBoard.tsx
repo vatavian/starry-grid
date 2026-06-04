@@ -17,6 +17,8 @@ interface GameBoardProps {
   mode: 'playing' | 'customize';
   selectedColor?: number;
   onBoardChange?: (board: number[][]) => void;
+  testSignal?: number;
+  onTestResult?: (result: { solved: boolean; allColorsUsed?: boolean; nonContiguous?: boolean }) => void;
 }
 
 // Key for a star position -> list of cells it auto-X'd
