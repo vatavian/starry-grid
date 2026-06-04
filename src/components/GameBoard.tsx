@@ -472,10 +472,10 @@ export function GameBoard({
                 borderBottom: bottomBorder ? '2px solid black' : `2px solid ${color.dark}`,
               }}
             >
-              {mode === 'playing' && state === 'x' && (
+              {state === 'x' && (
                 <X className="w-1/2 h-1/2 text-muted-foreground stroke-[3]" />
               )}
-              {mode === 'playing' && state === 'star' && (
+              {state === 'star' && (
                 <Star
                   className={
                     isConflict
