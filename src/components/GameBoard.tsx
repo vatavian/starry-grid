@@ -32,6 +32,8 @@ export function GameBoard({
   mode,
   selectedColor = 1,
   onBoardChange,
+  testSignal,
+  onTestResult,
 }: GameBoardProps) {
   const [states, setStates] = useState<SquareState[][]>(() =>
     Array.from({ length: N }, () => Array(N).fill('empty'))
