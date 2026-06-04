@@ -36,6 +36,7 @@ export default function Index() {
   const [clearSignal, setClearSignal] = useState(0);
   const [selectedColor, setSelectedColor] = useState(1);
   const [savedBoards, setSavedBoards] = useState<{ name: string; seed: string }[]>([]);
+  const [testSignal, setTestSignal] = useState(0);
 
   useEffect(() => {
     const entries: { name: string; seed: string }[] = [];
