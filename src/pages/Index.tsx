@@ -328,6 +328,11 @@ export default function Index() {
                 Save
               </Button>
             )}
+            {gameState === 'customize' && (
+              <Button variant="outline" onClick={() => setTestSignal((v) => v + 1)}>
+                Test
+              </Button>
+            )}
           </div>
         </div>
       )}
