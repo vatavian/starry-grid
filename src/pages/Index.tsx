@@ -9,6 +9,7 @@ import { WinnerOverlay } from '@/components/WinnerOverlay';
 import { generateBoard } from '@/lib/boardGenerator';
 import { GAME_COLORS } from '@/lib/gameColors';
 import { Hammer, Play } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 type GameState = 'menu' | 'generating' | 'playing' | 'won' | 'customize';
 
@@ -35,6 +36,7 @@ export default function Index() {
   const [clearSignal, setClearSignal] = useState(0);
   const [selectedColor, setSelectedColor] = useState(1);
   const [savedBoards, setSavedBoards] = useState<{ name: string; seed: string }[]>([]);
+  const [testSignal, setTestSignal] = useState(0);
 
   useEffect(() => {
     const entries: { name: string; seed: string }[] = [];
@@ -279,6 +281,17 @@ export default function Index() {
             mode={gameState === 'customize' ? 'customize' : 'playing'}
             selectedColor={selectedColor}
             onBoardChange={(nextBoard) => setBoard(nextBoard)}
+            testSignal={testSignal}
+            onTestResult={(result) => {
+              if (result.solved) {
+                toast({ title: 'Solution found', description: 'A valid star placement was found.' });
+              } else {
+                toast({
+                  title: 'No solution found',
+                  description: `All colors used: ${result.allColorsUsed ? 'yes' : 'no'}. Non-contiguous color regions: ${result.nonContiguous ? 'yes' : 'no'}.`,
+                });
+              }
+            }}
           />
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button
@@ -313,6 +326,11 @@ export default function Index() {
             {gameState === 'customize' && (
               <Button onClick={handleSaveBoard}>
                 Save
+              </Button>
+            )}
+            {gameState === 'customize' && (
+              <Button variant="outline" onClick={() => setTestSignal((v) => v + 1)}>
+                Test
               </Button>
             )}
           </div>

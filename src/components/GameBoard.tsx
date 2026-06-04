@@ -17,6 +17,8 @@ interface GameBoardProps {
   mode: 'playing' | 'customize';
   selectedColor?: number;
   onBoardChange?: (board: number[][]) => void;
+  testSignal?: number;
+  onTestResult?: (result: { solved: boolean; allColorsUsed?: boolean; nonContiguous?: boolean }) => void;
 }
 
 // Key for a star position -> list of cells it auto-X'd
@@ -30,6 +32,8 @@ export function GameBoard({
   mode,
   selectedColor = 1,
   onBoardChange,
+  testSignal,
+  onTestResult,
 }: GameBoardProps) {
   const [states, setStates] = useState<SquareState[][]>(() =>
     Array.from({ length: N }, () => Array(N).fill('empty'))
@@ -66,6 +70,77 @@ export function GameBoard({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!testSignal) return;
+
+    const solve = (): [number, number][] | null => {
+      const placement: [number, number][] = [];
+      const usedCols = new Set<number>();
+      const usedColors = new Set<number>();
+      const rec = (row: number): boolean => {
+        if (row === N) return true;
+        for (let c = 0; c < N; c++) {
+          if (usedCols.has(c)) continue;
+          const color = board[row][c];
+          if (usedColors.has(color)) continue;
+          if (row > 0) {
+            const [, pc] = placement[row - 1];
+            if (Math.abs(pc - c) === 1) continue;
+          }
+          placement.push([row, c]);
+          usedCols.add(c);
+          usedColors.add(color);
+          if (rec(row + 1)) return true;
+          placement.pop();
+          usedCols.delete(c);
+          usedColors.delete(color);
+        }
+        return false;
+      };
+      return rec(0) ? placement.slice() : null;
+    };
+
+    const solution = solve();
+    if (solution) {
+      const newStates: SquareState[][] = Array.from({ length: N }, () => Array(N).fill('empty'));
+      for (const [r, c] of solution) newStates[r][c] = 'star';
+      setStates(newStates);
+      onTestResult?.({ solved: true });
+      return;
+    }
+
+    // Diagnostics
+    const colorsPresent = new Set<number>();
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) colorsPresent.add(board[r][c]);
+    let allColorsUsed = colorsPresent.size === N;
+    for (let i = 1; i <= N; i++) if (!colorsPresent.has(i)) allColorsUsed = false;
+
+    const visited = Array.from({ length: N }, () => Array(N).fill(false));
+    let nonContiguous = false;
+    const colorTotals = new Map<number, number>();
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      colorTotals.set(board[r][c], (colorTotals.get(board[r][c]) ?? 0) + 1);
+    }
+    for (let r = 0; r < N && !nonContiguous; r++) {
+      for (let c = 0; c < N && !nonContiguous; c++) {
+        if (visited[r][c]) continue;
+        const color = board[r][c];
+        const stack: [number, number][] = [[r, c]];
+        let compSize = 0;
+        while (stack.length) {
+          const [x, y] = stack.pop()!;
+          if (x < 0 || y < 0 || x >= N || y >= N || visited[x][y] || board[x][y] !== color) continue;
+          visited[x][y] = true;
+          compSize++;
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        }
+        if (compSize !== (colorTotals.get(color) ?? 0)) nonContiguous = true;
+      }
+    }
+
+    onTestResult?.({ solved: false, allColorsUsed, nonContiguous });
+  }, [testSignal]);
 
   const saveSnapshot = () => {
     undoStack.current.push({
@@ -397,10 +472,10 @@ export function GameBoard({
                 borderBottom: bottomBorder ? '2px solid black' : `2px solid ${color.dark}`,
               }}
             >
-              {mode === 'playing' && state === 'x' && (
+              {state === 'x' && (
                 <X className="w-1/2 h-1/2 text-muted-foreground stroke-[3]" />
               )}
-              {mode === 'playing' && state === 'star' && (
+              {state === 'star' && (
                 <Star
                   className={
                     isConflict
