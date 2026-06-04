@@ -9,6 +9,7 @@ import { WinnerOverlay } from '@/components/WinnerOverlay';
 import { generateBoard } from '@/lib/boardGenerator';
 import { GAME_COLORS } from '@/lib/gameColors';
 import { Hammer, Play } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 type GameState = 'menu' | 'generating' | 'playing' | 'won' | 'customize';
 
