@@ -37,6 +37,8 @@ export default function Index() {
   const [selectedColor, setSelectedColor] = useState(1);
   const [savedBoards, setSavedBoards] = useState<{ name: string; seed: string }[]>([]);
   const [testSignal, setTestSignal] = useState(0);
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     const entries: { name: string; seed: string }[] = [];
@@ -123,8 +125,8 @@ export default function Index() {
         url: window.location.href,
       });
     } catch {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`I won a ${N}×${N} Starry Grid! ${window.location.href}`);
+      setShowQR(false);
+      setShowSharePanel(true);
     }
   }, [N]);
 
@@ -339,6 +341,45 @@ export default function Index() {
 
       {gameState === 'won' && (
         <WinnerOverlay onNewGame={handleNewGame} onShare={handleShare} />
+      )}
+
+      {showSharePanel && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+          onClick={() => setShowSharePanel(false)}
+        >
+          <div
+            className="bg-card border border-border rounded-lg p-6 shadow-lg max-w-sm w-full mx-4 flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold">Share</h2>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  setShowSharePanel(false);
+                }}
+              >
+                Copy URL
+              </Button>
+              <Button variant="outline" onClick={() => setShowQR((v) => !v)}>
+                {showQR ? 'Hide QR Code' : 'Show QR Code'}
+              </Button>
+              {showQR && (
+                <div className="flex justify-center">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`}
+                    alt="QR Code"
+                    className="rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+            <Button variant="ghost" onClick={() => setShowSharePanel(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
